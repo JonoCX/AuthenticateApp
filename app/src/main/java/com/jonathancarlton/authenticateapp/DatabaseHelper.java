@@ -20,9 +20,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "DateStorage.db";
     private static final int DATABASE_VERSION = 1;
-    private static final String DATE_TABLE_NAME = "date_since_last_checked";
-    private static final String LAST_COLUMN_TWITTER_ID = "twitter_id";
-    private static final String LAST_COLUMN_LAST_CHECKED = "last_checked";
+    private static final String DATE_TABLE_NAME = "datesince";
+    private static final String LAST_COLUMN_TWITTER_ID = "twitterid";
+    private static final String LAST_COLUMN_LAST_CHECKED = "lastchecked";
 
     private static final String[] COLUMNS = {
             LAST_COLUMN_TWITTER_ID,
@@ -30,8 +30,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     };
 
     private static final String CREATE_QUERY = "CREATE TABLE " + DATE_TABLE_NAME +
-            "(" + LAST_COLUMN_TWITTER_ID + " PRIMARY KEY INTEGER, " + LAST_COLUMN_LAST_CHECKED +
-            " TEXT)";
+            " ( " + LAST_COLUMN_TWITTER_ID + " INTEGER PRIMARY KEY, " + LAST_COLUMN_LAST_CHECKED +
+            " TEXT )";
 
     private static final String DROP_QUERY = "DROP TABLE IF EXISTS " + DATE_TABLE_NAME;
 
@@ -41,6 +41,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
+
         sqLiteDatabase.execSQL(CREATE_QUERY);
     }
 
@@ -79,14 +80,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Cursor cursor = db.query(
                 DATE_TABLE_NAME,
                 COLUMNS,
-                " twitter_id = ?",
+                " twitterid = ?",
                 new String[] { String.valueOf(tID) },
                 null,
                 null,
                 null,
                 null);
 
-        if (cursor != null)
+        if (cursor != null && cursor.getCount() > 0)
             cursor.moveToFirst();
         else
             return "No records stored";
