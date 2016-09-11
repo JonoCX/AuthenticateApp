@@ -86,12 +86,16 @@ public class AuthenticateActivity extends AppCompatActivity {
                 try {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyy-HH:mm:ss");
                     Date formattedDate = simpleDateFormat.parse(date);
-                    Decision decision = new Decision (
+                    Decision decision = new Decision(
                             twitterID,
                             lists[0],
-                            formattedDate
+                            formattedDate,
+                            getResources().getString(R.string.t4j_consumer_key),
+                            getResources().getString(R.string.t4j_secret_key),
+                            getResources().getString(R.string.t4j_access_token),
+                            getResources().getString(R.string.t4j_access_token_secret),
+                            getResources().getString(R.string.ml_api_key)
                     );
-
                     choice = decision.decide();
                 } catch (ParseException pe) {
                     pe.printStackTrace();
