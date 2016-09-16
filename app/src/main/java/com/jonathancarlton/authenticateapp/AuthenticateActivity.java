@@ -1,7 +1,7 @@
 package com.jonathancarlton.authenticateapp;
 
-import android.*;
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -18,8 +18,9 @@ import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.*;
 import com.google.android.gms.location.LocationServices;
+import com.jonathancarlton.authenticateapp.util.CheckLocation;
+import com.jonathancarlton.authenticateapp.util.DatabaseHelper;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -29,10 +30,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import uk.ac.ncl.jcarlton.networkanalysis.Decision;
 
 public class AuthenticateActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    private ProgressDialog progressDialog;
     private Button authenticateButton;
     private long twitterID;
     private String twitterUsername;
@@ -47,6 +48,8 @@ public class AuthenticateActivity extends AppCompatActivity implements GoogleApi
     private boolean permissionGranted = false;
     private boolean locationAuth = false;
 
+    private Thread thread;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,6 +63,7 @@ public class AuthenticateActivity extends AppCompatActivity implements GoogleApi
                     .build();
         }
 
+
         // automatically set to false.
         authDecision = false;
 
@@ -68,14 +72,74 @@ public class AuthenticateActivity extends AppCompatActivity implements GoogleApi
         Intent passedIntent = getIntent();
         twitterID = (long) passedIntent.getExtras().get("twitter_user_id");
         twitterUsername = (String) passedIntent.getExtras().get("twitter_username");
+        Log.i("TWITTER_ID", "Twitter ID: " + twitterID + ", Username: " + twitterUsername);
 
         setUpAuthButton();
+
+//        progressDialog = ProgressDialog.show(AuthenticateActivity.this, "", "Loading...", true);
+//        thread = new Thread(new InnerRunnable(), "decide");
+//        thread.start();
+//
+//        try {
+//            thread.join();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
+        // finalDecision();
+
     }
 
     private void setUpAuthButton() {
         authenticateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //finalDecision();
+                //thread = new Thread(new InnerRunnable(), "decide");
+                //thread.start();
+//                new Thread(new Runnable() {
+//                    @Override
+//                    public void run() {
+//
+//                        List<Long> staticUsers = new ArrayList<Long>();
+//                        staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_1)));
+//                        staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_2)));
+//                        staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_3)));
+//
+//                        DatabaseHelper helper = new DatabaseHelper(getApplicationContext());
+//                        boolean inserted = false;
+//                        String date = helper.getDate(twitterID);
+//                        if (date.equals("No records stored")) {
+//                            date = new SimpleDateFormat("dd-MM-yyyy-HH:mm-ss").format(Calendar.getInstance().getTime());
+//                            if (helper.insertDate(twitterID, date)) inserted = true;
+//                        } else {
+//                            inserted = true;
+//                        }
+//
+//                        if (inserted) {
+//
+//                            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss");
+//                            Date testDate = new Date("08/01/2016");
+//                            Decision decision = new Decision(
+//                                    getApplicationContext(),
+//                                    twitterID,
+//                                    staticUsers,
+//                                    testDate
+//                            );
+//
+//                            authDecision = decision.decide();
+//
+//                        }
+//
+//                        runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                progressDialog.dismiss();
+//                            }
+//                        });
+//                    }
+//                }).start();
+
                 List<Long> staticUsers = new ArrayList<Long>();
                 staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_1)));
                 staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_2)));
@@ -87,16 +151,67 @@ public class AuthenticateActivity extends AppCompatActivity implements GoogleApi
                     e.printStackTrace();
                 }
 
-                CheckLocation locationCheck = new CheckLocation();
-                // if distance < 0.1 miles
-                locationAuth = locationCheck.distance(mLastLat, mLastLng) < 0.1;
+                finalDecision();
 
-                if (authDecision && locationAuth)
-                    Toast.makeText(getApplicationContext(), "SUCCESS", Toast.LENGTH_LONG);
-                else
-                    Toast.makeText(getApplicationContext(), "FAILURE", Toast.LENGTH_LONG);
             }
         });
+
+    }
+
+    class InnerRunnable implements Runnable {
+
+        @Override
+        public void run() {
+            List<Long> staticUsers = new ArrayList<Long>();
+            staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_1)));
+            staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_2)));
+            staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_3)));
+
+            DatabaseHelper helper = new DatabaseHelper(getApplicationContext());
+            boolean inserted = false;
+            String date = helper.getDate(twitterID);
+            if (date.equals("No records stored")) {
+                date = new SimpleDateFormat("dd-MM-yyyy-HH:mm-ss").format(Calendar.getInstance().getTime());
+                if (helper.insertDate(twitterID, date)) inserted = true;
+            } else {
+                inserted = true;
+            }
+
+            if (inserted) {
+
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss");
+                Date testDate = new Date("08/01/2016");
+                Decision decision = new Decision(
+                        getApplicationContext(),
+                        twitterID,
+                        staticUsers,
+                        testDate
+                );
+
+                authDecision = decision.decide();
+
+            }
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    progressDialog.dismiss();
+                }
+            });
+        }
+    }
+
+    private void finalDecision() {
+        Log.i("HERE", "HERE");
+        CheckLocation locationCheck = new CheckLocation();
+        // if distance < 0.1 miles
+        locationAuth = locationCheck.distance(mLastLat, mLastLng) < 10;
+        if (authDecision && locationAuth) {
+            Toast.makeText(getApplicationContext(), "SUCCESS", Toast.LENGTH_LONG).show();
+        }
+        else {
+            Toast.makeText(getApplicationContext(), "FAILURE", Toast.LENGTH_LONG).show();
+        }
     }
 
     protected void onStart() {
@@ -123,16 +238,13 @@ public class AuthenticateActivity extends AppCompatActivity implements GoogleApi
                     new String[] { Manifest.permission.ACCESS_FINE_LOCATION},
                     REQUEST_LOCATION
             );
-            Log.i("CURRENT LAT", String.valueOf(mLastLat));
-            Log.i("CURRENT LONG", String.valueOf(mLastLng));
         } else {
             mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if (mLastLocation != null) {
                 mLastLat = mLastLocation.getLatitude();
                 mLastLng = mLastLocation.getLongitude();
                 permissionGranted = true;
-                Log.i("CURRENT LAT", String.valueOf(mLastLat));
-                Log.i("CURRENT LONG", String.valueOf(mLastLng));
+
             }
         }
 
@@ -167,37 +279,85 @@ public class AuthenticateActivity extends AppCompatActivity implements GoogleApi
 
     }
 
-    private class DecideAuth extends AsyncTask<List<Long>, Void, Boolean> {
+//    private class DecideAuth extends AsyncTask<List<Long>, Void, Boolean> {
+//
+//
+//        @Override
+//        protected Boolean doInBackground(List<Long>... lists) {
+//            DatabaseHelper helper = new DatabaseHelper(getApplicationContext());
+//            boolean choice = false;
+//            boolean inserted = false;
+//            String date = helper.getDate(twitterID);
+//            if (date.equals("No records stored")) {
+//                date = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss").format(Calendar.getInstance().getTime());
+//                if (helper.insertDate(twitterID, date))
+//                    inserted = true;
+//            } else
+//                inserted = true;
+//
+//            if (inserted) {
+//                try {
+//                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyy-HH:mm:ss");
+//                    Date formattedDate = simpleDateFormat.parse(date);
+//                    Decision decision = new Decision(
+//                            twitterID,
+//                            lists[0],
+//                            formattedDate,
+//                            getResources().getString(R.string.t4j_consumer_key),
+//                            getResources().getString(R.string.t4j_secret_key),
+//                            getResources().getString(R.string.t4j_access_token),
+//                            getResources().getString(R.string.t4j_access_token_secret),
+//                            getResources().getString(R.string.ml_api_key)
+//                    );
+//                    choice = decision.decide();
+//                } catch (ParseException pe) {
+//                    pe.printStackTrace();
+//                }
+//            } else {
+//                return false;
+//            }
+//
+//            return choice;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Boolean aBoolean) {
+//            super.onPostExecute(aBoolean);
+//        }
+//    }
 
+    private class DecideAuth extends AsyncTask<List<Long>, Void, Boolean> {
 
         @Override
         protected Boolean doInBackground(List<Long>... lists) {
             DatabaseHelper helper = new DatabaseHelper(getApplicationContext());
+
             boolean choice = false;
             boolean inserted = false;
             String date = helper.getDate(twitterID);
             if (date.equals("No records stored")) {
-                date = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss").format(Calendar.getInstance().getTime());
-                if (helper.insertDate(twitterID, date))
-                    inserted = true;
-            } else
+                date = new SimpleDateFormat("dd-MM-yyyy-HH:mm-ss").format(Calendar.getInstance().getTime());
+                if (helper.insertDate(twitterID, date)) inserted = true;
+            } else {
                 inserted = true;
+            }
+
+            Log.i("DATE", "Date: " + date);
 
             if (inserted) {
                 try {
-                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyy-HH:mm:ss");
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss");
                     Date formattedDate = simpleDateFormat.parse(date);
+                    Date testDate = new Date("08/01/2016");
                     Decision decision = new Decision(
+                            getApplicationContext(),
                             twitterID,
                             lists[0],
-                            formattedDate,
-                            getResources().getString(R.string.t4j_consumer_key),
-                            getResources().getString(R.string.t4j_secret_key),
-                            getResources().getString(R.string.t4j_access_token),
-                            getResources().getString(R.string.t4j_access_token_secret),
-                            getResources().getString(R.string.ml_api_key)
+                            testDate
                     );
+
                     choice = decision.decide();
+
                 } catch (ParseException pe) {
                     pe.printStackTrace();
                 }
@@ -211,6 +371,7 @@ public class AuthenticateActivity extends AppCompatActivity implements GoogleApi
         @Override
         protected void onPostExecute(Boolean aBoolean) {
             super.onPostExecute(aBoolean);
+            finalDecision();
         }
     }
 }

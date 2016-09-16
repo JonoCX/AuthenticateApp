@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "887949412613",
+    "firebase_url": "https://authenticateapp.firebaseio.com",
+    "project_id": "authenticateapp",
+    "storage_bucket": "authenticateapp.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:887949412613:android:899a206e4d65769e",
+        "android_client_info": {
+          "package_name": "com.jonathancarlton.authenticateapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "887949412613-67f2h4oe6dfurj23gi08euagdauj2kaq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsug3uR5aliIYU2ivRvcmr2M8jzXXXIs4"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

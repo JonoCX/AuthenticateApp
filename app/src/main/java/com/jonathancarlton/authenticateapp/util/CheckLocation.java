@@ -1,4 +1,4 @@
-package com.jonathancarlton.authenticateapp;
+package com.jonathancarlton.authenticateapp.util;
 
 import android.os.Bundle;
 
