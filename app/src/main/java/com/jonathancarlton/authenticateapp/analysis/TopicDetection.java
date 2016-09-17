@@ -23,6 +23,9 @@ import java.util.Map;
 import javax.net.ssl.HttpsURLConnection;
 
 /**
+ * <h1>Topic Detection</h1>
+ * The class provides the functionality to perform
+ * topic detection on a users Twitter feed.
  *
  * @author Jonathan Carlton
  */
@@ -33,7 +36,10 @@ public class TopicDetection {
     private String apiKey;
     private List<String> feed;
 
+    // URL to send requests too.
     private static final String MONKEY_LEARN_BASE_URL = "https://api.monkeylearn.com/v2/classifiers/cl_5icAVzKR/classify/";
+
+    // Regular expressions to perform the pre-processing of the tweet feed.
     private static final String URL_REGEX = "((www\\.[\\s]+)|(https?://[^\\s]+))";
     private static final String USERNAME_REGEX = "(@[A-Za-z0-9])\\w+";
     private static final String REPEATING_CHARS = "(.)\\1{3,}";
@@ -45,6 +51,7 @@ public class TopicDetection {
 
         setup();
 
+        // preprocess on the object creation.
         this.feed = preprocessFeed(feed);
     }
 
@@ -197,10 +204,11 @@ public class TopicDetection {
     }
 
     /**
+     * Process a single string.
      *
-     * @param response
-     * @param text
-     * @return
+     * @param response      response from the server
+     * @param text          the text which was passed
+     * @return              map of the text to its topics/frequencies
      */
     private Map<String, JSONArray> processRequestSingular(String response, String text) {
         Map<String, JSONArray> result = new HashMap<>();
@@ -216,10 +224,18 @@ public class TopicDetection {
         return result;
     }
 
+    /**
+     * Get the passed feed.
+     * @return      the feed.
+     */
     public List<String> getFeed() {
         return feed;
     }
 
+    /**
+     * Set the feed.
+     * @param feed  the feed to be used.
+     */
     public void setFeed(List<String> feed) {
         this.feed = feed;
     }

@@ -28,6 +28,7 @@ import twitter4j.TwitterException;
 import uk.ac.ncl.jcarlton.networkanalysis.util.MapSorter;
 
 /**
+ * <h1>Link Analysis</h1>
  * Perform link analysis on a Twitter based data
  * set.
  * <p>
@@ -65,6 +66,10 @@ public class LinkAnalysis {
         setupFeed();
     }
 
+    /**
+     * Fetch the requesting users Twitter feed
+     * in order for it to be processed.
+     */
     private void setupFeed() {
         List<Status> rawFeed;
         feed = new ArrayList<>();
@@ -72,7 +77,6 @@ public class LinkAnalysis {
             try {
                 username = twitterInstance.getScreenName();
                 rawFeed = getTweets(userId);
-                Log.i("RAW_FEED", "Raw feed: " + rawFeed);
                 for (Status s : rawFeed) {
                     feed.add(s.getText());
                 }
@@ -83,7 +87,6 @@ public class LinkAnalysis {
             try {
                 userId = twitterInstance.getId();
                 rawFeed = getTweets(userId);
-                Log.i("RAW_FEED", "Raw feed: " + rawFeed);
                 for (Status s : rawFeed)
                     feed.add(s.getText());
             } catch (TwitterException e) {
@@ -202,18 +205,19 @@ public class LinkAnalysis {
     /**
      * Package the recent activity by the user in question, ready to
      * be processed and stored.
-     *
+     * <p>
      * This 'recent activity' includes all social media activity
      * such as; the tweets they've liked, an up-to-date snapshot
      * of their timeline, the topics that they've posted about
      * since being last checked and the static users that they've
      * interacted with in the meantime.
+     * </p>
+     * @param users         the static users.
      *
-     * @param users     the static users
-     * @return JSONObject of all the most recent social
-     *                  media activity from the user in question.
+     * @return              JSONObject of all the most recent social
+     *                      media activity from the user in question.
      *
-     * @throws IOException
+     * @throws IOException  thrown from the FileIO object.
      */
     public JSONObject recentActivity(List<Long> users) throws IOException {
         String currentDate = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss").format(Calendar.getInstance().getTime());
@@ -235,43 +239,11 @@ public class LinkAnalysis {
         inner.put("topics_posted", topicsPosted);
 
         FileIO io = new FileIO(applicationContext);
-        try {
-            io.writeJSON(inner, Long.toString(userId));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        io.writeJSON(inner, Long.toString(userId));
+
 
         return io.readInJSON(Long.toString(userId));
 
-//        User user = new User(
-//                userId,
-//                currentDate,
-//                feed,
-//                lastChecked,
-//                topicsPosted
-//        );
-////        Log.i("USER", "User: " + user.toString());
-////        FirebaseUtility firebaseUtility = new FirebaseUtility(user, applicationContext);
-////        firebaseUtility.writeUser();
-////
-//       JSONObject obj = new JSONObject();
-////        List<User> allData = firebaseUtility.getAllData();
-////        Log.i("ALL DATA", "data: " + allData);
-////        for (User u : allData) {
-//            JSONObject inner = new JSONObject();
-//            inner.put("user_id", u.getUserId());
-//            inner.put("current_date", u.getCurrentDate());
-//            inner.put("last_checked", u.getLastChecked());
-//            inner.put("timeline_since_last_checked", u.getTimelineSinceLastChecked());
-//            inner.put("topics_posted", u.getTopicsPosted());
- //           obj.put("activity_" + new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss").format(new Date(u.getCurrentDate())), inner);
-     //   }
-        //obj.putAll(savedUser.toMap());
-
-//        Log.i("USER", "User: " + user);
-        //Log.i("SAVED_USER", "Saved User:" + savedUser);
-
-        //return obj;
     }
 
 
@@ -280,8 +252,10 @@ public class LinkAnalysis {
      * and return them in a JSON array ready to be added
      * to the recent activity json file.
      *
-     * @param feed
-     * @return
+     * @param feed      the feed to be analysed.
+     *
+     * @return          the topics in which the user has
+     *                  be talking about.
      */
     private JSONArray topicsPosted(List<String> feed) {
         TopicDetection detection = new TopicDetection(applicationContext, feed);
@@ -334,29 +308,59 @@ public class LinkAnalysis {
         return result;
     }
 
-    private List<Status> getTweets(long userId) throws IndexOutOfBoundsException, TwitterException {
+    /**
+     * Fetch and process the tweets from the requeting users
+     * timeline.
+     *
+     * @param userId                 the request users id.
+     *
+     * @return                       a list of the text content of each
+     *                               tweet on the users timeline.
+     *
+     * @throws TwitterException      thrown from the Twitter4J library, specifically
+     *                               the getUserTimeline method call.
+     */
+    private List<Status> getTweets(long userId) throws TwitterException {
         List<Status> list = new ArrayList<>();
 
+        /*
+            Paging is a method to count the rate limit issues with the
+            Twitter4J library. You're only able to gather a set amount
+            of information from the Twitter API, so by incremementally
+            increasing the paging is reduces this limit being met.
+         */
         Paging paging = new Paging(1);
         List<Status> temp;
         outerLoop:
         do {
             temp = twitterInstance.getUserTimeline(userId, paging);
-            Log.i("TEMP", "getTweets; temp " + temp);
+
             for (Status s : temp) {
+                // if the current status has been created after the since day
                 if (s.getCreatedAt().after(since)) {
                     list.add(s);
-                } else if (s.getCreatedAt().before(since)) {
+                } else if (s.getCreatedAt().before(since)) { // else before then break.
                     break outerLoop;
                 }
             }
+
+            // clear to remove the previously sourced statuses
             temp.clear();
             paging.setPage(paging.getPage() + 1);
         } while (list.size() > 0);
-        Log.i("LIST", "getTweets; list: " + list);
+
         return list;
     }
 
+    /**
+     * Much like the {@link #getTweets(long)} method, this method will
+     * retrieve the favourites of the requesting user.
+     *
+     * @return                      a list of the favourites of the user.
+     *
+     * @throws TwitterException     thrown from the Twitter4J library, specifically
+     *                              the getFavourites method.
+     */
     private List<Status> getFavourites() throws TwitterException {
         List<Status> result = new ArrayList<>();
         Paging paging = new Paging(1);

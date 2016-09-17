@@ -14,9 +14,15 @@ import com.twitter.sdk.android.core.TwitterException;
 import com.twitter.sdk.android.core.TwitterSession;
 import com.twitter.sdk.android.core.identity.TwitterLoginButton;
 
-
 import io.fabric.sdk.android.Fabric;
 
+/**
+ * <h1>Main Activity</h1>
+ * The main activity for the application, the one in which
+ * the user is greeted with as they log in.
+ *
+ * @author Jonathan Carlton
+ */
 public class MainActivity extends AppCompatActivity {
 
     private String twitterKey;
@@ -24,6 +30,9 @@ public class MainActivity extends AppCompatActivity {
 
     private TwitterLoginButton loginButton;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +48,12 @@ public class MainActivity extends AppCompatActivity {
         setUpLoginButton();
     }
 
+    /**
+     * Setup the Twitter Login button.
+     *
+     * <b>Note:</b> The login button is taken from
+     * the Fabric Twitter API.
+     */
     private void setUpLoginButton() {
         // set up the Twitter login event
         loginButton = (TwitterLoginButton) findViewById(R.id.twitter_login_button);
@@ -57,6 +72,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Load the authentication activity to do the proper
+     * work.
+     *
+     * @param userId        the requesting users Twitter ID
+     * @param username      the requesting users Twitter username
+     */
     private void loadAuthActivity(long userId, String username) {
         Intent intent = new Intent(this, AuthenticateActivity.class);
         intent.putExtra("twitter_user_id", userId);
@@ -64,6 +86,9 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

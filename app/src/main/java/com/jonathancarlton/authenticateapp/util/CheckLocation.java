@@ -1,9 +1,12 @@
 package com.jonathancarlton.authenticateapp.util;
 
-import android.os.Bundle;
 
 /**
- * Created by Jonathan on 15-Sep-16.
+ * <h1>Check Location</h1>
+ * A class to check the distance as to which someone is
+ * from Claremont Tower
+ *
+ * @author Jonathan Carlton
  */
 public class CheckLocation {
 
@@ -13,6 +16,17 @@ public class CheckLocation {
 
     public CheckLocation() {}
 
+    /**
+     * The method to calculate the distance between the
+     * latitude and longitude of Claremont Tower to those
+     * that are passed to the method as parameters.
+     *
+     * @param lat       latitude.
+     *
+     * @param lng       longitude.
+     *
+     * @return          the distance between.
+     */
     public double distance(double lat, double lng) {
         // earth's radius in miles, 6371 for km output
         double earthRadius = 3958.75;

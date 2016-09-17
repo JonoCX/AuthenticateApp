@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 /**
+ * <h1>Database Helper</h1>
  * SQLite helper class to perform specific operations
  * on the data that is stored.
  *

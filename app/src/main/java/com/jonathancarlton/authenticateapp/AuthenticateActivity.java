@@ -1,7 +1,6 @@
 package com.jonathancarlton.authenticateapp;
 
 import android.Manifest;
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -30,33 +29,40 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-
+/**
+ * <h1>Authenticate Activity</h1>
+ * The activity in which the user is greeted with the
+ * button to authenticate themselves - if successful they
+ * are able to do a range of things (constructs that aren't
+ * built into this program) i.e. access a room.
+ */
 public class AuthenticateActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
-    private ProgressDialog progressDialog;
     private Button authenticateButton;
     private long twitterID;
     private String twitterUsername;
 
     private boolean authDecision = false;
 
-    private GoogleApiClient mGoogleApiClient = null;
-    private Location mLastLocation;
-    private double mLastLat;
-    private double mLastLng;
+    private GoogleApiClient googleApiClient = null;
+    private Location lastLocation;
+    private double lastLat;
+    private double lastLng;
     private static final int REQUEST_LOCATION = 2;
-    private boolean permissionGranted = false;
     private boolean locationAuth = false;
 
     private Thread thread;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_authenicate);
 
-        if (mGoogleApiClient == null) {
-            mGoogleApiClient = new GoogleApiClient.Builder(this)
+        if (googleApiClient == null) {
+            googleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .addApi(LocationServices.API)
@@ -72,75 +78,23 @@ public class AuthenticateActivity extends AppCompatActivity implements GoogleApi
         Intent passedIntent = getIntent();
         twitterID = (long) passedIntent.getExtras().get("twitter_user_id");
         twitterUsername = (String) passedIntent.getExtras().get("twitter_username");
-        Log.i("TWITTER_ID", "Twitter ID: " + twitterID + ", Username: " + twitterUsername);
 
         setUpAuthButton();
 
-//        progressDialog = ProgressDialog.show(AuthenticateActivity.this, "", "Loading...", true);
-//        thread = new Thread(new InnerRunnable(), "decide");
-//        thread.start();
-//
-//        try {
-//            thread.join();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-
-        // finalDecision();
 
     }
 
+    /**
+     * A method to setup the authentication button that the
+     * user is presented with
+     */
     private void setUpAuthButton() {
         authenticateButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //finalDecision();
-                //thread = new Thread(new InnerRunnable(), "decide");
-                //thread.start();
-//                new Thread(new Runnable() {
-//                    @Override
-//                    public void run() {
-//
-//                        List<Long> staticUsers = new ArrayList<Long>();
-//                        staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_1)));
-//                        staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_2)));
-//                        staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_3)));
-//
-//                        DatabaseHelper helper = new DatabaseHelper(getApplicationContext());
-//                        boolean inserted = false;
-//                        String date = helper.getDate(twitterID);
-//                        if (date.equals("No records stored")) {
-//                            date = new SimpleDateFormat("dd-MM-yyyy-HH:mm-ss").format(Calendar.getInstance().getTime());
-//                            if (helper.insertDate(twitterID, date)) inserted = true;
-//                        } else {
-//                            inserted = true;
-//                        }
-//
-//                        if (inserted) {
-//
-//                            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss");
-//                            Date testDate = new Date("08/01/2016");
-//                            Decision decision = new Decision(
-//                                    getApplicationContext(),
-//                                    twitterID,
-//                                    staticUsers,
-//                                    testDate
-//                            );
-//
-//                            authDecision = decision.decide();
-//
-//                        }
-//
-//                        runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                progressDialog.dismiss();
-//                            }
-//                        });
-//                    }
-//                }).start();
-
                 List<Long> staticUsers = new ArrayList<Long>();
+
+                // pull the static user ids from the resources
                 staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_1)));
                 staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_2)));
                 staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_3)));
@@ -158,54 +112,15 @@ public class AuthenticateActivity extends AppCompatActivity implements GoogleApi
 
     }
 
-    class InnerRunnable implements Runnable {
-
-        @Override
-        public void run() {
-            List<Long> staticUsers = new ArrayList<Long>();
-            staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_1)));
-            staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_2)));
-            staticUsers.add(Long.parseLong(getResources().getString(R.string.static_user_3)));
-
-            DatabaseHelper helper = new DatabaseHelper(getApplicationContext());
-            boolean inserted = false;
-            String date = helper.getDate(twitterID);
-            if (date.equals("No records stored")) {
-                date = new SimpleDateFormat("dd-MM-yyyy-HH:mm-ss").format(Calendar.getInstance().getTime());
-                if (helper.insertDate(twitterID, date)) inserted = true;
-            } else {
-                inserted = true;
-            }
-
-            if (inserted) {
-
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss");
-                Date testDate = new Date("08/01/2016");
-                Decision decision = new Decision(
-                        getApplicationContext(),
-                        twitterID,
-                        staticUsers,
-                        testDate
-                );
-
-                authDecision = decision.decide();
-
-            }
-
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    progressDialog.dismiss();
-                }
-            });
-        }
-    }
-
+    /**
+     * Make the final decision as to whether or not the
+     * user will be authenticated based on the results of
+     * the processing of their Twitter feed and location.
+     */
     private void finalDecision() {
-        Log.i("HERE", "HERE");
         CheckLocation locationCheck = new CheckLocation();
-        // if distance < 0.1 miles
-        locationAuth = locationCheck.distance(mLastLat, mLastLng) < 10;
+        // if distance < 0.1 miles (10 miles for testing)
+        locationAuth = locationCheck.distance(lastLat, lastLng) < 10;
         if (authDecision && locationAuth) {
             Toast.makeText(getApplicationContext(), "SUCCESS", Toast.LENGTH_LONG).show();
         }
@@ -214,16 +129,27 @@ public class AuthenticateActivity extends AppCompatActivity implements GoogleApi
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void onStart() {
-        mGoogleApiClient.connect();
+        googleApiClient.connect();
         super.onStart();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     protected void onStop() {
-        mGoogleApiClient.disconnect();
+        googleApiClient.disconnect();
         super.onStop();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -239,121 +165,90 @@ public class AuthenticateActivity extends AppCompatActivity implements GoogleApi
                     REQUEST_LOCATION
             );
         } else {
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-            if (mLastLocation != null) {
-                mLastLat = mLastLocation.getLatitude();
-                mLastLng = mLastLocation.getLongitude();
-                permissionGranted = true;
-
+            // get the last known location from the GPS
+            lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+            if (lastLocation != null) {
+                lastLat = lastLocation.getLatitude();
+                lastLng = lastLocation.getLongitude();
             }
         }
 
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_LOCATION) {
             if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // noinspection ResourceType
-                Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+                Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
                 if (lastLocation != null) {
-                    mLastLat = lastLocation.getLatitude();
-                    mLastLng = lastLocation.getLongitude();
-                    permissionGranted = true;
+                    lastLat = lastLocation.getLatitude();
+                    lastLng = lastLocation.getLongitude();
+
                 }
-            } else {
-                // Permission denied
-                permissionGranted = false;
             }
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void onConnectionSuspended(int i) {
+    public void onConnectionSuspended(int i) {}
 
-    }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {}
 
-    }
 
-//    private class DecideAuth extends AsyncTask<List<Long>, Void, Boolean> {
-//
-//
-//        @Override
-//        protected Boolean doInBackground(List<Long>... lists) {
-//            DatabaseHelper helper = new DatabaseHelper(getApplicationContext());
-//            boolean choice = false;
-//            boolean inserted = false;
-//            String date = helper.getDate(twitterID);
-//            if (date.equals("No records stored")) {
-//                date = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss").format(Calendar.getInstance().getTime());
-//                if (helper.insertDate(twitterID, date))
-//                    inserted = true;
-//            } else
-//                inserted = true;
-//
-//            if (inserted) {
-//                try {
-//                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyy-HH:mm:ss");
-//                    Date formattedDate = simpleDateFormat.parse(date);
-//                    Decision decision = new Decision(
-//                            twitterID,
-//                            lists[0],
-//                            formattedDate,
-//                            getResources().getString(R.string.t4j_consumer_key),
-//                            getResources().getString(R.string.t4j_secret_key),
-//                            getResources().getString(R.string.t4j_access_token),
-//                            getResources().getString(R.string.t4j_access_token_secret),
-//                            getResources().getString(R.string.ml_api_key)
-//                    );
-//                    choice = decision.decide();
-//                } catch (ParseException pe) {
-//                    pe.printStackTrace();
-//                }
-//            } else {
-//                return false;
-//            }
-//
-//            return choice;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Boolean aBoolean) {
-//            super.onPostExecute(aBoolean);
-//        }
-//    }
-
+    /**
+     * <h2>Decide Authentication</h2>
+     * Inner asynchronous which runs along side the main UI thread
+     * when called.
+     * <p>
+     * The class calls the relevant objects to perform the analysis
+     * on the requesting user, the topic detection and the relationships
+     * that the user has which the static users.
+     */
     private class DecideAuth extends AsyncTask<List<Long>, Void, Boolean> {
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         protected Boolean doInBackground(List<Long>... lists) {
             DatabaseHelper helper = new DatabaseHelper(getApplicationContext());
 
             boolean choice = false;
             boolean inserted = false;
+
+            // fetch the stored date
             String date = helper.getDate(twitterID);
+
+            // if no date is stored
             if (date.equals("No records stored")) {
+                // create and insert a new one into the SQLite DB
                 date = new SimpleDateFormat("dd-MM-yyyy-HH:mm-ss").format(Calendar.getInstance().getTime());
                 if (helper.insertDate(twitterID, date)) inserted = true;
             } else {
                 inserted = true;
             }
 
-            Log.i("DATE", "Date: " + date);
-
             if (inserted) {
                 try {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss");
                     Date formattedDate = simpleDateFormat.parse(date);
-                    Date testDate = new Date("08/01/2016");
                     Decision decision = new Decision(
                             getApplicationContext(),
                             twitterID,
                             lists[0],
-                            testDate
+                            formattedDate
                     );
 
                     choice = decision.decide();
@@ -368,6 +263,9 @@ public class AuthenticateActivity extends AppCompatActivity implements GoogleApi
             return choice;
         }
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         protected void onPostExecute(Boolean aBoolean) {
             super.onPostExecute(aBoolean);

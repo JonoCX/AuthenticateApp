@@ -23,6 +23,15 @@ import twitter4j.Twitter;
 import uk.ac.ncl.jcarlton.networkanalysis.util.MapSorter;
 
 /**
+ * <h1>Decision</h1>
+ * The main class that decides, based on various parameters
+ * from other classes if the user has past the tests in order
+ * to be authenticated.
+ *
+ * <p>
+ * The main usage of the class comes from the {@link #decide()}
+ * method.
+ *
  * @author Jonathan Carlton
  */
 public class Decision {
@@ -239,6 +248,10 @@ public class Decision {
         }
     }
 
+    /**
+     * Fetch the decision
+     * @return  the decision.
+     */
     public boolean isDecision() {
         return decision;
     }
