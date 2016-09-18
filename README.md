@@ -20,6 +20,7 @@ The JavaDocs are available to read here: [API Docs](https://jonocx.github.io/Aut
 * Java
 * Android Studio
 * [Twitter4J](http://twitter4j.org/en)
+* [Monkey Learn](http://www.monkeylearn.com/)
 * [SimpleJSON](https://code.google.com/archive/p/simple-json/)
 * [Fabric: Twitter](https://get.fabric.io/)
 * [Network Analysis](https://github.com/JonoCX/NetworkAnalysis) (Structure, design and code brought inline from this project)
